@@ -24,7 +24,7 @@ module.exports={
         }
         const existingUser=await User.findOne({email:userInput.email});
         if(existingUser) {const error=new Error('User exists already!');throw error;}
-        const hashedPw=await bcrypt.hash(userInput.password,12);
+        const hashedPw=await bcrypt.hash(userInput.password,12);//must hash the password
         const user=new User({
             email:userInput.email,
             name:userInput.name,
@@ -34,7 +34,7 @@ module.exports={
         return {...createdUser._doc, _id:createdUser.id.toString()};
     },
     login:async ({email,password})=>{
-        const user=await User.findOne({email:email});
+        const user=await User.findOne({email:email});console.log(user);
         if(!user) {
             const error=new Error('User not found');
             error.code=401;
@@ -55,7 +55,12 @@ module.exports={
         return {token:token, userId:user._id.toString()};
     },
     createPost:async ({postInput},req)=>{
-        //validate the input
+        if(!req.isAuth) {
+            const error=new Error('Not authenticated!');
+            error.code=401;
+            throw error;
+        }
+        //the following code to validate the input
         const errors=[];
         if(validator.isEmpty(postInput.title)||!validator.isLength(postInput.title,{min:5})) {
             errors.push({message:'Title is invalid.'});
@@ -69,12 +74,21 @@ module.exports={
             error.code=422;
             throw error;
         }
+        const user=await User.findById(req.userId);
+        if(!user) {
+            const error=new Error('Invalid user');
+            error.code=401;
+            throw error;
+        }
         const post=new Post({
             title:postInput.title,
             imageUrl:postInput.imageUrl,
-            content:postInput.content
+            content:postInput.content,
+            creator:user
         });
         const createdPost=await post.save();
+        user.posts.push(createdPost);
+        await user.save();
         return {
             ...createdPost._doc,
             _id:createdPost._id.toString(),

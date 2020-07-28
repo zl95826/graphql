@@ -8,6 +8,7 @@ const multer = require('multer');
 const graphqlHTTP = require('express-graphql');
 const schema=require('./graphql/schema');
 const resolver=require('./graphql/resolvers');
+const auth=require('./middleware/auth');
 const app = express();
 
 const fileStorage = multer.diskStorage({
@@ -45,9 +46,12 @@ app.use((req, res, next) => {
     'OPTIONS, GET, POST, PUT, PATCH, DELETE'
   );
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  if(req.method==='OPTIONS') {return res.sendStatus(200);}
+  if(req.method==='OPTIONS') {return res.sendStatus(200);}//deal with preflight request
   next();
 });
+app.use(auth);
+//This middleware will now run on every request that reaches my graphql endpoint
+//but it will not deny the request if there is no token.
 
 app.use('/graphql',graphqlHTTP({
   schema:schema,
