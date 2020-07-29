@@ -81,7 +81,7 @@ app.use((error, req, res, next) => {
 
 mongoose
   .connect(
-    'mongodb+srv://bettyMongo:.../messages?retryWrites=true&w=majority',{ useNewUrlParser: true }
+    'mongodb+srv://bettyMongo:...',{ useNewUrlParser: true }
   )
   .then(result => {
     app.listen(8080);
