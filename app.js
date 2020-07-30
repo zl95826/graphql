@@ -57,7 +57,7 @@ app.use('/graphql',graphqlHTTP({
   schema:schema,
   rootValue:resolver,
   graphiql: true,
-  formatError(err) {
+  customFormatErrorFn(err) {
     //formatError this configuration allows you to add more error information
     //which receives the error detected by graphql and allows you to return your own format.
     if(!err.originalError) {
@@ -81,9 +81,9 @@ app.use((error, req, res, next) => {
 
 mongoose
   .connect(
-    'mongodb+srv://bettyMongo:...',{ useNewUrlParser: true }
+    'mongodb+srv://bettyMongo:.../messages?retryWrites=true&w=majority',{ useNewUrlParser: true }
   )
-  .then(result => {
+  .then(result => {console.log('connected');
     app.listen(8080);
   })
   .catch(err => console.log(err));
