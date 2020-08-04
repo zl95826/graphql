@@ -1,5 +1,5 @@
 const path = require('path');
-
+const fs = require('fs');
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
@@ -10,13 +10,13 @@ const schema=require('./graphql/schema');
 const resolver=require('./graphql/resolvers');
 const auth=require('./middleware/auth');
 const app = express();
-
+const { uuid } = require('uuidv4');
 const fileStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'images');
   },
   filename: (req, file, cb) => {
-    cb(null, new Date().toISOString() + '-' + file.originalname);
+    cb(null, new Date().getTime()+'-'+file.originalname);
   }
 });
 
@@ -53,6 +53,17 @@ app.use(auth);
 //This middleware will now run on every request that reaches my graphql endpoint
 //but it will not deny the request if there is no token.
 
+app.put('/post-image',(req,res,next)=>{
+  if(!req.isAuth) {throw new Error('Not authenticated!');}
+  if(!req.file) {return res.status(200).json({message:'No file provided!'});}
+  if(req.body.oldPath) {clearImage(req.body.oldPath);}
+  //const newImageUrl =  req.file.path.replace(/\\/g,'/');console.log('newImageUrl',newImageUrl);
+  console.log('req.file.path',req.file.path);
+ // return res.status(201).json({message:'File stored.',filePath:req.file.path.replace(/\\/g,'/')});
+ return res.status(201).json({message:'File stored.',filePath:req.file.path});
+})
+
+
 app.use('/graphql',graphqlHTTP({
   schema:schema,
   rootValue:resolver,
@@ -81,9 +92,15 @@ app.use((error, req, res, next) => {
 
 mongoose
   .connect(
-    'mongodb+srv://bettyMongo:.../messages?retryWrites=true&w=majority',{ useNewUrlParser: true }
+    'mongodb+srv://bettyMongo:/messages?retryWrites=true&w=majority',{ useNewUrlParser: true }
   )
   .then(result => {console.log('connected');
     app.listen(8080);
   })
   .catch(err => console.log(err));
+
+  const clearImage = filePath => {
+    filePath = path.join(__dirname, '..', filePath);
+    fs.unlink(filePath, err => console.log(err));
+  };
+  
