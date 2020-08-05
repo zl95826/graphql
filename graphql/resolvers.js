@@ -114,5 +114,21 @@ module.exports={
             updatedAt:p.updatedAt.toISOString()
         }}),totalPosts:totalPosts}
 
+    },
+    post:async ({id},req)=>{
+        if(!req.isAuth) {
+            const error=new Error('Not authenticated!');
+            error.code=401;
+            throw error;
+        }
+        const post=await Post.findById(id).populate('creator');
+        console.log('post',post);
+        return {
+            ...post._doc,
+            _id:post._id.toString(),
+            createdAt:post.createdAt.toISOString(),
+            updatedAt:post.updatedAt.toISOString()
+
+        }
     }
 }

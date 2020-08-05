@@ -92,7 +92,7 @@ app.use((error, req, res, next) => {
 
 mongoose
   .connect(
-    'mongodb+srv://bettyMongo:/messages?retryWrites=true&w=majority',{ useNewUrlParser: true }
+    'mongodb+srv://bettyMongo:.../messages?retryWrites=true&w=majority',{ useNewUrlParser: true }
   )
   .then(result => {console.log('connected');
     app.listen(8080);
