@@ -201,6 +201,20 @@ module.exports={
         user.posts.pull(id);//Pulls/removes items from the array atomically
         await user.save();
         return true;
+    },
+    user:async (args,req)=>{
+        if(!req.isAuth) {
+            const error=new Error('Not authenticated!');
+            error.code=401;
+            throw error;
+        }
+        const user=await User.findById(req.userId);
+        if(!user) {
+            const error=new Error('No user found!');
+            error.code=404;
+            throw error;
+        }
+        return {...user._doc,_id:user._id.toString()};
     }
     
 }
