@@ -3,6 +3,7 @@ const Post=require('../models/post');
 const validator=require('validator');
 const bcrypt = require('bcryptjs');
 const jwt=require('jsonwebtoken');
+const {clearImage}=require('../util/file');
 module.exports={
     hello:()=>{
         return {text:'hello',views:1}
@@ -148,7 +149,7 @@ module.exports={
             error.code=404;
             throw error;
         }
-        if(post._id.toString()===req.userId) {//req.userId is set in the auth.js
+        if(post.creator._id.toString()!==req.userId.toString()) {//req.userId is set in the auth.js
             const error=new Error('Not Authorized!');
             error.code=403;
             throw error;
@@ -176,6 +177,30 @@ module.exports={
             createdAt:updatedPost.createdAt.toISOString(),
             updatedAt:updatedPost.updatedAt.toISOString()
         }
+    },
+    deletePost:async ({id},req)=>{
+        if(!req.isAuth) {
+            const error=new Error('Not authenticated!');
+            error.code=401;
+            throw error;
+        }
+        const post=await Post.findById(id);
+        if(!post) {
+            const error=new Error('No post found!');
+            error.code=404;
+            throw error;
+        }
+        if(post.creator.toString()!==req.userId.toString()) {
+            const error=new Error('Not Authorized!');
+            error.code=403;
+            throw error;
+        }
+        clearImage(post.imageUrl);//post.imageUrl: this is the path of the image on my server
+        await Post.findByIdAndRemove(id);
+        const user=await User.findById(req.userId);
+        user.posts.pull(id);//Pulls/removes items from the array atomically
+        await user.save();
+        return true;
     }
     
 }

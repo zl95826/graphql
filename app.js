@@ -1,5 +1,5 @@
 const path = require('path');
-const fs = require('fs');
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
@@ -11,6 +11,7 @@ const resolver=require('./graphql/resolvers');
 const auth=require('./middleware/auth');
 const app = express();
 const { uuid } = require('uuidv4');
+const {clearImage}=require('./util/file');
 const fileStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'images');
@@ -99,8 +100,4 @@ mongoose
   })
   .catch(err => console.log(err));
 
-  const clearImage = filePath => {
-    filePath = path.join(__dirname, '..', filePath);
-    fs.unlink(filePath, err => console.log(err));
-  };
-  
+ 
