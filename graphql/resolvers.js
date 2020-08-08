@@ -167,10 +167,12 @@ module.exports={
             error.code=422;
             throw error;
         }
+        console.log('post',post);
         post.title=postInput.title;
-        post.content=postInput.content;
+        post.content=postInput.content; console.log('check1',postInput.imageUrl);
         if(postInput.imageUrl!=='undefined') {post.imageUrl=postInput.imageUrl;}
         const updatedPost=await post.save();
+        console.log('check',updatedPost);
         return {
             ...updatedPost._doc,
             _id:updatedPost._id.toString(),
